@@ -170,7 +170,7 @@ class EndToEndTests(unittest.TestCase):
 
     def run_once(self):
         return run_pipeline.run(store=self.store, client=self.crm, scraper=lambda: (self.locations, []),
-                                today="2026-11-20", quiet=True)[0]
+                                today="2026-11-20", quiet=True, report_dir=Path(self.tmp.name))[0]
 
     def test_rerun_is_safe(self):
         first = self.run_once()

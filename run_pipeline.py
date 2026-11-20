@@ -17,7 +17,7 @@ from bellhaven_sync.scraper import scrape
 from bellhaven_sync.store import Store
 
 
-def run(dry_run=False, store=None, client=None, scraper=scrape, today=None, quiet=False):
+def run(dry_run=False, store=None, client=None, scraper=scrape, today=None, quiet=False, report_dir=None):
     say = (lambda *a: None) if quiet else print
     if not config.TOKEN and client is None:
         sys.exit("Set BELLHAVEN_TOKEN (see .env.example).")
@@ -44,8 +44,9 @@ def run(dry_run=False, store=None, client=None, scraper=scrape, today=None, quie
         run_id = store.start_run()
         summary["queue"] = store.save_proposals(run_id, proposals)
         store.finish_run(run_id, summary)
-        config.REPORT_DIR.mkdir(parents=True, exist_ok=True)
-        (config.REPORT_DIR / "latest.json").write_text(
+        report_dir = report_dir or config.REPORT_DIR
+        report_dir.mkdir(parents=True, exist_ok=True)
+        (report_dir / "latest.json").write_text(
             json.dumps({"summary": summary, "confident": confident, "proposals": proposals}, indent=1), encoding="utf-8")
 
     say(json.dumps(summary, indent=1))
