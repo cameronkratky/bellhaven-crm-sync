@@ -1,0 +1,38 @@
+name: Daily Bellhaven CRM sync
+
+on:
+  schedule:
+    - cron: "0 11 * * *"   # 11:00 UTC = 6:00 AM Central (5 AM during daylight time)
+  workflow_dispatch: {}
+
+concurrency: bellhaven-sync   # never two runs at once
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - run: python -m unittest discover -s tests -t .
+      # Decisions live in data/state.db. Restore the latest copy so already-decided
+      # proposals are skipped. (In production this would be a hosted database.)
+      - uses: actions/cache/restore@v4
+        with:
+          path: data/state.db
+          key: bellhaven-state-${{ github.run_id }}
+          restore-keys: bellhaven-state-
+      - run: python run_pipeline.py
+        env:
+          BELLHAVEN_TOKEN: ${{ secrets.BELLHAVEN_TOKEN }}
+      - uses: actions/cache/save@v4
+        with:
+          path: data/state.db
+          key: bellhaven-state-${{ github.run_id }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sync-report
+          path: data/reports/latest.json

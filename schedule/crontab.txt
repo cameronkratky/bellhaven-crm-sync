@@ -1,0 +1,4 @@
+# Daily at 6:00 AM Central, before reps start calling.
+# The job only queues proposals; nothing reaches the CRM until a reviewer approves it.
+CRON_TZ=America/Chicago
+0 6 * * * cd /opt/bellhaven-crm-sync && /usr/bin/python3 run_pipeline.py >> logs/pipeline.log 2>&1
